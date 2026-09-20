@@ -199,7 +199,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div class="field-row">
       <div class="field">
         <label>ক্যাটাগরি</label>
-        <select id="f-cat"></select>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="f-cat" style="flex:1;min-width:0"></select>
+          <button type="button" onclick="inlineAddCat()" title="নতুন ক্যাটাগরি যোগ করুন" style="padding:7px 11px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--green);cursor:pointer;font-size:16px;font-weight:700;line-height:1">+</button>
+          <button type="button" onclick="inlineRemoveCat()" title="এই ক্যাটাগরি মুছুন" style="padding:7px 11px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--red);cursor:pointer;font-size:16px;font-weight:700;line-height:1">−</button>
+        </div>
+        <div id="inline-cat-err" style="font-size:12px;color:var(--red);margin-top:3px;display:none"></div>
       </div>
       <div class="field">
         <label>বর্তমান পরিমাণ *</label>
@@ -443,6 +448,34 @@ function fillCatSelect(sel){
   const cats = categories.filter(c=>c!=='সব পণ্য');
   const s = document.getElementById('f-cat');
   s.innerHTML = '<option value="">-- ক্যাটাগরি বেছে নিন --</option>'+cats.map(c=>`<option value="${c}"${sel===c?' selected':''}>${c}</option>`).join('');
+}
+
+function inlineAddCat(){
+  const err = document.getElementById('inline-cat-err');
+  const name = prompt('নতুন ক্যাটাগরির নাম লিখুন:');
+  if(!name){return}
+  const trimmed = name.trim();
+  if(!trimmed){err.textContent='নাম খালি রাখা যাবে না';err.style.display='block';return}
+  if(categories.includes(trimmed)){err.textContent='"'+trimmed+'" আগেই আছে';err.style.display='block';return}
+  err.style.display='none';
+  categories.push(trimmed);
+  save();
+  fillCatSelect(trimmed);
+  document.getElementById('f-cat').value=trimmed;
+  renderCatFilter();
+}
+
+function inlineRemoveCat(){
+  const err = document.getElementById('inline-cat-err');
+  const sel = document.getElementById('f-cat').value;
+  if(!sel){err.textContent='আগে একটা ক্যাটাগরি বেছে নিন';err.style.display='block';return}
+  if(!confirm('"'+sel+'" ক্যাটাগরি মুছবেন?')){return}
+  err.style.display='none';
+  categories = categories.filter(c=>c!==sel);
+  products.forEach(p=>{if(p.cat===sel)p.cat=''});
+  save();
+  fillCatSelect('');
+  renderCatFilter();
 }
 
 function previewImg(e){
