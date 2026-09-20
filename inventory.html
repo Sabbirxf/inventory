@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>আমার ব্যবসার ইনভেন্টরি</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;--surface:#fff;--surface2:#f0f2f5;--border:#e0e3e8;--border2:#c8cdd6;
+  --text:#1a1d23;--text2:#5a6070;--text3:#9098a8;
+  --accent:#2563eb;--accent-bg:#eff4ff;--accent-border:#bfcfff;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --radius:8px;--radius2:12px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* layout */
+.app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:50;gap:1rem}
+.logo{font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.logo-icon{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#1d4ed8}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.btn-danger:hover{background:#fee2e2}
+
+/* main content */
+.main{flex:1;padding:1.25rem 1.5rem;max-width:1100px;margin:0 auto;width:100%}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:1rem 1.1rem}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.stat-val{font-size:24px;font-weight:700;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.stat-card.green .stat-val{color:var(--green)}
+.stat-card.amber .stat-val{color:var(--amber)}
+.stat-card.red .stat-val{color:var(--red)}
+.stat-card.purple .stat-val{color:var(--purple)}
+
+/* toolbar */
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.toolbar-left{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:160px;max-width:280px}
+.search-wrap input{width:100%;padding:7px 10px 7px 32px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px}
+.search-wrap input:focus{outline:none;border-color:var(--accent)}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:14px}
+.cat-filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cat-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;white-space:nowrap}
+.cat-chip:hover{border-color:var(--border2);background:var(--surface2)}
+.cat-chip.active{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent);font-weight:500}
+
+/* product grid */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;display:flex;flex-direction:column}
+.product-card.low-stock{border-color:var(--amber-border)}
+.product-card.out-stock{border-color:var(--red-border)}
+.card-img{height:140px;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:36px;overflow:hidden;position:relative}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-cat-badge{position:absolute;top:8px;left:8px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(0,0,0,0.55);color:#fff}
+.card-body{padding:12px;flex:1;display:flex;flex-direction:column;gap:6px}
+.card-name{font-size:15px;font-weight:600;line-height:1.3}
+.card-price-row{display:flex;justify-content:space-between;align-items:baseline}
+.card-price{font-size:18px;font-weight:700;color:var(--accent)}
+.card-total{font-size:12px;color:var(--text2)}
+.stock-row{display:flex;align-items:center;gap:8px}
+.stock-badge{padding:3px 8px;border-radius:20px;font-size:12px;font-weight:500}
+.stock-badge.ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.stock-badge.low{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.stock-badge.out{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.sold-info{font-size:11px;color:var(--text3)}
+.stock-bar-wrap{background:var(--surface2);height:4px;border-radius:2px;overflow:hidden;margin-top:2px}
+.stock-bar{height:100%;border-radius:2px;transition:width .3s}
+.card-actions{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sell-row{display:flex;gap:6px;flex:1;min-width:120px}
+.sell-row input{width:60px;padding:5px 7px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);font-size:12px;color:var(--text);text-align:center}
+.sell-row input:focus{outline:none;border-color:var(--accent)}
+.icon-btn{width:30px;height:30px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text2);transition:all .15s}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+.icon-btn.edit:hover{border-color:var(--accent-border);color:var(--accent);background:var(--accent-bg)}
+.icon-btn.del:hover{border-color:var(--red-border);color:var(--red);background:var(--red-bg)}
+.icon-btn.hist:hover{border-color:var(--purple-border);color:var(--purple);background:var(--purple-bg)}
+
+/* empty */
+.empty{text-align:center;padding:4rem 2rem;color:var(--text2)}
+.empty-icon{font-size:48px;margin-bottom:1rem;opacity:.4}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius2);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-header{padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:16px;font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px 6px;border-radius:var(--radius)}
+.modal-close:hover{background:var(--surface2);color:var(--text)}
+.modal-body{padding:1.25rem 1.5rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:9px 11px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.img-upload-area{height:100px;border:2px dashed var(--border);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:6px;font-size:13px;color:var(--text3);background:var(--surface2);transition:border-color .15s;position:relative;overflow:hidden}
+.img-upload-area:hover{border-color:var(--accent)}
+.img-upload-area img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.err{font-size:12px;color:var(--red);margin-top:4px;display:none}
+
+/* history modal */
+.hist-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface2);border-radius:var(--radius)}
+.hist-item .date{font-size:12px;color:var(--text2)}
+.hist-item .qty{font-weight:600;color:var(--green)}
+.hist-item .revenue{font-size:12px;color:var(--text2)}
+.hist-empty{text-align:center;padding:2rem;color:var(--text3);font-size:13px}
+.hist-summary{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.hist-stat{flex:1;min-width:100px;background:var(--surface2);padding:10px 12px;border-radius:var(--radius)}
+.hist-stat-label{font-size:11px;color:var(--text3)}
+.hist-stat-val{font-size:18px;font-weight:700;margin-top:2px}
+
+/* category manager */
+.cat-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cat-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:20px;font-size:13px;color:var(--accent)}
+.cat-remove{background:none;border:none;cursor:pointer;color:var(--accent);font-size:14px;padding:0;line-height:1}
+.cat-remove:hover{color:var(--red)}
+.cat-add-row{display:flex;gap:8px}
+.cat-add-row input{flex:1;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px}
+.cat-add-row input:focus{outline:none;border-color:var(--accent)}
+
+/* PRINT */
+@media print{
+  .topbar,.toolbar,.card-actions,.btn,.icon-btn,.overlay{display:none!important}
+  body{background:#fff}
+  .main{padding:0;max-width:100%}
+  .stats,.product-grid{break-inside:avoid}
+  .product-card{border:1px solid #ddd;break-inside:avoid;margin-bottom:8px}
+  .card-actions{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    আমার ইনভেন্টরি
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" onclick="openCatModal()">🏷️ ক্যাটাগরি</button>
+    <button class="btn" onclick="window.print()">🖨️ প্রিন্ট</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ যোগ করুন</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS -->
+  <div class="stats" id="stats"></div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-inp" placeholder="প্রোডাক্ট খুঁজুন..." oninput="renderProducts()">
+      </div>
+      <div class="cat-filter" id="cat-filter"></div>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="product-grid" id="product-grid"></div>
+</div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="add-modal" onclick="overlayClick(event,'add-modal')">
+<div class="modal">
+  <div class="modal-header">
+    <h2 id="modal-title">নতুন প্রোডাক্ট যোগ করুন</h2>
+    <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="field">
+      <label>প্রোডাক্টের নাম *</label>
+      <input type="text" id="f-name" placeholder="যেমন: লাল শাড়ি, বাসমতি চাল ৫কেজি">
+      <div class="err" id="err-name">নাম দিন</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>ক্যাটাগরি</label>
+        <select id="f-cat"></select>
+      </div>
+      <div class="field">
+        <label>বর্তমান পরিমাণ *</label>
+        <input type="number" id="f-qty" placeholder="যেমন: 50" min="0">
+        <div class="err" id="err-qty">পরিমাণ দিন</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>একটির দাম (টাকা)</label>
+        <input type="number" id="f-price" placeholder="যেমন: 250" min="0">
+      </div>
+      <div class="field">
+        <label>কম স্টক সতর্কতা</label>
+        <input type="number" id="f-low" placeholder="যেমন: 10" min="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>প্রোডাক্টের ছবি</label>
+      <div class="img-upload-area" id="img-area" onclick="document.getElementById('f-img').click()">
+        <span style="font-size:24px">📷</span>
+        <span>ক্লিক করে ছবি আপলোড করুন</span>
+      </div>
+      <input type="file" id="f-img" accept="image/*" style="display:none" onchange="previewImg(event)">
+    </div>
+    <div class="field">
+      <label>নোট (ঐচ্ছিক)</label>
+      <input type="text" id="f-note" placeholder="যেমন: সাইজ M, ব্র্যান্ড ABC">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('add-modal')">বাতিল</button>
+    <button class="btn btn-primary" onclick="saveProduct()">💾 সেভ করুন</button>
+  </div>
+</div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="overlay" id="hist-modal" onclick="overlayClick(event,'hist-modal')">
+<div class="modal">
+  <div class="modal-header">
+    <h2 id="hist-title">বিক্রির ইতিহাস</h2>
+    <button class="modal-close" onclick="closeModal('hist-modal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="hist-summary" id="hist-summary"></div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+</div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="overlay" id="cat-modal" onclick="overlayClick(event,'cat-modal')">
+<div class="modal">
+  <div class="modal-header">
+    <h2>ক্যাটাগরি ম্যানেজ করুন</h2>
+    <button class="modal-close" onclick="closeModal('cat-modal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="cat-list" id="cat-list"></div>
+    <div class="cat-add-row">
+      <input type="text" id="new-cat" placeholder="নতুন ক্যাটাগরি নাম দিন..." onkeydown="if(event.key==='Enter')addCategory()">
+      <button class="btn btn-primary btn-sm" onclick="addCategory()">+ যোগ</button>
+    </div>
+    <div class="err" id="err-cat" style="display:none;margin-top:8px"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ===== STATE =====
+let products = JSON.parse(localStorage.getItem('inv_products') || '[]');
+let categories = JSON.parse(localStorage.getItem('inv_cats') || '["সব পণ্য","কাপড়","খাদ্য","গৃহস্থালি","ইলেকট্রনিক্স","অন্যান্য"]');
+let editId = null;
+let editImg = null;
+let filterCat = 'সব পণ্য';
+
+function save(){
+  localStorage.setItem('inv_products', JSON.stringify(products));
+  localStorage.setItem('inv_cats', JSON.stringify(categories));
+  renderAll();
+}
+
+// ===== STATS =====
+function renderStats(){
+  const total = products.length;
+  const totalItems = products.reduce((s,p)=>s+p.qty,0);
+  const totalValue = products.reduce((s,p)=>s+(p.qty*(p.price||0)),0);
+  const totalRevenue = products.reduce((s,p)=>s+((p.sold||0)*(p.price||0)),0);
+  const lowCount = products.filter(p=>p.qty>0&&p.qty<=(p.low||5)).length;
+  const outCount = products.filter(p=>p.qty===0).length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">মোট প্রোডাক্ট</div>
+      <div class="stat-val">${total}</div>
+      <div class="stat-sub">ধরন</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">মোট স্টক মূল্য</div>
+      <div class="stat-val">৳${totalValue.toLocaleString('bn-BD')}</div>
+      <div class="stat-sub">${totalItems} আইটেম</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">মোট বিক্রয়</div>
+      <div class="stat-val">৳${totalRevenue.toLocaleString('bn-BD')}</div>
+      <div class="stat-sub">এখন পর্যন্ত</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">কম স্টক</div>
+      <div class="stat-val">${lowCount}</div>
+      <div class="stat-sub">সতর্কতা</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">শেষ হয়েছে</div>
+      <div class="stat-val">${outCount}</div>
+      <div class="stat-sub">স্টক নেই</div>
+    </div>
+  `;
+}
+
+// ===== CAT FILTER =====
+function renderCatFilter(){
+  const cats = ['সব পণ্য', ...categories.filter(c=>c!=='সব পণ্য')];
+  document.getElementById('cat-filter').innerHTML = cats.map(c=>`
+    <div class="cat-chip${filterCat===c?' active':''}" onclick="setFilter('${c}')">${c}</div>
+  `).join('');
+}
+
+function setFilter(cat){filterCat=cat;renderProducts();renderCatFilter()}
+
+// ===== PRODUCTS =====
+function getFiltered(){
+  const q = document.getElementById('search-inp').value.toLowerCase();
+  return products.filter(p=>{
+    const matchCat = filterCat==='সব পণ্য' || p.cat===filterCat;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.note||'').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+}
+
+function renderProducts(){
+  const list = getFiltered();
+  const grid = document.getElementById('product-grid');
+  if(list.length===0){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><p>${products.length===0?'এখনো কোনো প্রোডাক্ট নেই<br>উপরে "+ যোগ করুন" ক্লিক করুন':'কোনো ফলাফল পাওয়া যায়নি'}</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p=>{
+    const isOut = p.qty===0;
+    const isLow = !isOut && p.qty<=(p.low||5);
+    const pct = p.low>0 ? Math.min(100,Math.round(p.qty/Math.max(p.qty,p.low*3)*100)) : p.qty>0?80:0;
+    const barColor = isOut?'#dc2626':isLow?'#d97706':'#16a34a';
+    const badge = isOut?'<span class="stock-badge out">শেষ</span>':isLow?`<span class="stock-badge low">⚠ কম: ${p.qty}</span>`:`<span class="stock-badge ok">✓ ${p.qty} আছে</span>`;
+    const totalVal = (p.qty*(p.price||0));
+    return `
+    <div class="product-card${isOut?' out-stock':isLow?' low-stock':''}">
+      <div class="card-img">
+        ${p.img?`<img src="${p.img}" alt="${p.name}">`:'📦'}
+        ${p.cat?`<span class="card-cat-badge">${p.cat}</span>`:''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        ${p.note?`<div style="font-size:12px;color:var(--text3)">${p.note}</div>`:''}
+        <div class="card-price-row">
+          <div class="card-price">${p.price?'৳'+Number(p.price).toLocaleString('bn-BD'):'-'}</div>
+          <div class="card-total">${totalVal>0?'মোট: ৳'+totalVal.toLocaleString('bn-BD'):''}</div>
+        </div>
+        <div class="stock-row">${badge}<span class="sold-info">${p.sold?'বিক্রি: '+(p.sold||0):'বিক্রি নেই'}</span></div>
+        <div class="stock-bar-wrap"><div class="stock-bar" style="width:${pct}%;background:${barColor}"></div></div>
+      </div>
+      <div class="card-actions">
+        <div class="sell-row">
+          <input type="number" id="si-${p.id}" placeholder="পিস" min="1" title="কতটি বিক্রি হয়েছে">
+          <button class="btn btn-sm" style="background:var(--green);color:#fff;border-color:var(--green)" onclick="sellProduct(${p.id})">বিক্রি ✓</button>
+        </div>
+        <button class="icon-btn hist" title="ইতিহাস" onclick="openHist(${p.id})">📋</button>
+        <button class="icon-btn edit" title="সম্পাদনা" onclick="openEdit(${p.id})">✏️</button>
+        <button class="icon-btn del" title="মুছুন" onclick="deleteProduct(${p.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== SELL =====
+function sellProduct(id){
+  const inp = document.getElementById('si-'+id);
+  const amt = parseInt(inp.value)||0;
+  if(amt<=0){inp.style.borderColor='var(--red)';setTimeout(()=>inp.style.borderColor='',1200);return}
+  const p = products.find(x=>x.id===id);
+  if(!p)return;
+  const actual = Math.min(amt,p.qty);
+  p.qty -= actual;
+  p.sold = (p.sold||0)+actual;
+  if(!p.history) p.history=[];
+  p.history.unshift({date:new Date().toLocaleDateString('bn-BD'),qty:actual,price:p.price||0,ts:Date.now()});
+  inp.value='';
+  save();
+}
+
+// ===== DELETE =====
+function deleteProduct(id){
+  if(!confirm('এই প্রোডাক্ট মুছবেন?'))return;
+  products = products.filter(x=>x.id!==id);
+  save();
+}
+
+// ===== ADD/EDIT MODAL =====
+function openAddModal(){
+  editId=null; editImg=null;
+  document.getElementById('modal-title').textContent='নতুন প্রোডাক্ট যোগ করুন';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-qty').value='';
+  document.getElementById('f-price').value='';
+  document.getElementById('f-low').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('f-img').value='';
+  document.getElementById('img-area').innerHTML='<span style="font-size:24px">📷</span><span>ক্লিক করে ছবি আপলোড করুন</span>';
+  document.querySelectorAll('.err').forEach(e=>e.style.display='none');
+  fillCatSelect();
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function openEdit(id){
+  const p = products.find(x=>x.id===id);
+  if(!p)return;
+  editId=id; editImg=p.img||null;
+  document.getElementById('modal-title').textContent='প্রোডাক্ট সম্পাদনা করুন';
+  document.getElementById('f-name').value=p.name;
+  document.getElementById('f-qty').value=p.qty;
+  document.getElementById('f-price').value=p.price||'';
+  document.getElementById('f-low').value=p.low||'';
+  document.getElementById('f-note').value=p.note||'';
+  fillCatSelect(p.cat);
+  const area=document.getElementById('img-area');
+  if(p.img){area.innerHTML=`<img src="${p.img}">`}else{area.innerHTML='<span style="font-size:24px">📷</span><span>ক্লিক করে ছবি আপলোড করুন</span>'}
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function fillCatSelect(sel){
+  const cats = categories.filter(c=>c!=='সব পণ্য');
+  const s = document.getElementById('f-cat');
+  s.innerHTML = '<option value="">-- ক্যাটাগরি বেছে নিন --</option>'+cats.map(c=>`<option value="${c}"${sel===c?' selected':''}>${c}</option>`).join('');
+}
+
+function previewImg(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    editImg=ev.target.result;
+    document.getElementById('img-area').innerHTML=`<img src="${ev.target.result}">`;
+  };
+  r.readAsDataURL(f);
+}
+
+function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const qty=parseInt(document.getElementById('f-qty').value);
+  const price=parseFloat(document.getElementById('f-price').value)||0;
+  const low=parseInt(document.getElementById('f-low').value)||5;
+  const note=document.getElementById('f-note').value.trim();
+  const cat=document.getElementById('f-cat').value;
+  let ok=true;
+  if(!name){document.getElementById('err-name').style.display='block';ok=false}else{document.getElementById('err-name').style.display='none'}
+  if(isNaN(qty)||qty<0){document.getElementById('err-qty').style.display='block';ok=false}else{document.getElementById('err-qty').style.display='none'}
+  if(!ok)return;
+  if(editId){
+    const p=products.find(x=>x.id===editId);
+    if(p){Object.assign(p,{name,qty,price,low,note,cat,img:editImg})}
+  } else {
+    products.push({id:Date.now(),name,qty,price,low,note,cat,img:editImg,sold:0,history:[]});
+  }
+  save();
+  closeModal('add-modal');
+}
+
+// ===== HISTORY MODAL =====
+function openHist(id){
+  const p=products.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('hist-title').textContent=`"${p.name}" — বিক্রির ইতিহাস`;
+  const hist=p.history||[];
+  const totalSold=hist.reduce((s,h)=>s+h.qty,0);
+  const totalRev=hist.reduce((s,h)=>s+(h.qty*(h.price||p.price||0)),0);
+  document.getElementById('hist-summary').innerHTML=`
+    <div class="hist-stat"><div class="hist-stat-label">মোট বিক্রি</div><div class="hist-stat-val" style="color:var(--green)">${totalSold} টি</div></div>
+    <div class="hist-stat"><div class="hist-stat-label">মোট আয়</div><div class="hist-stat-val" style="color:var(--purple)">৳${totalRev.toLocaleString('bn-BD')}</div></div>
+    <div class="hist-stat"><div class="hist-stat-label">বর্তমান স্টক</div><div class="hist-stat-val">${p.qty} টি</div></div>
+  `;
+  if(hist.length===0){
+    document.getElementById('hist-list').innerHTML='<div class="hist-empty">এখনো কোনো বিক্রির রেকর্ড নেই</div>';
+  } else {
+    document.getElementById('hist-list').innerHTML=hist.map(h=>`
+      <div class="hist-item">
+        <div>
+          <div class="date">📅 ${h.date}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="qty">−${h.qty} টি</div>
+          <div class="revenue">৳${((h.qty*(h.price||p.price||0))).toLocaleString('bn-BD')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('hist-modal').classList.add('open');
+}
+
+// ===== CATEGORY MODAL =====
+function openCatModal(){
+  renderCatList();
+  document.getElementById('new-cat').value='';
+  document.getElementById('err-cat').style.display='none';
+  document.getElementById('cat-modal').classList.add('open');
+}
+
+function renderCatList(){
+  const cats=categories.filter(c=>c!=='সব পণ্য');
+  document.getElementById('cat-list').innerHTML=cats.map(c=>`
+    <div class="cat-tag">${c}<button class="cat-remove" onclick="removeCat('${c}')" title="মুছুন">✕</button></div>
+  `).join('');
+}
+
+function addCategory(){
+  const val=document.getElementById('new-cat').value.trim();
+  const err=document.getElementById('err-cat');
+  if(!val){err.textContent='নাম দিন';err.style.display='block';return}
+  if(categories.includes(val)){err.textContent='এই ক্যাটাগরি আগেই আছে';err.style.display='block';return}
+  err.style.display='none';
+  categories.push(val);
+  document.getElementById('new-cat').value='';
+  save();
+  renderCatList();
+  renderCatFilter();
+}
+
+function removeCat(cat){
+  if(!confirm(`"${cat}" ক্যাটাগরি মুছবেন? এই ক্যাটাগরির প্রোডাক্টগুলো আনক্যাটাগরাইজড হবে।`))return;
+  categories=categories.filter(c=>c!==cat);
+  products.forEach(p=>{if(p.cat===cat)p.cat=''});
+  save();
+  renderCatList();
+  renderCatFilter();
+}
+
+// ===== UTILS =====
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function overlayClick(e,id){if(e.target.id===id)closeModal(id)}
+
+function renderAll(){
+  renderStats();
+  renderCatFilter();
+  renderProducts();
+}
+
+renderAll();
+</script>
+</body>
+</html>
